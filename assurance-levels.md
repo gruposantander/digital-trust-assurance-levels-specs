@@ -100,7 +100,7 @@ Implementers MUST return an object for each claim inside `ials_claims` element w
 
 * `level` REQUIRED. This is the level of assurance provided by the OP, it MUST be equal than the level requested.
 * `assurer` OPTIONAL. The id and name of the assurer (the entity assuring the data level). This id must be unique.
-* `issuer` OPTIONAL. The id and name of the issuer (the entity issuing the data, in a format or document or any other valid digital representation). This id must be unique.
+* `issuer` OPTIONAL. The id and name of the issuer (the trusted entity source of the data, in a format of a document or any other valid digital representation). This id must be unique.
 
   
 The following is a non normative example of the response:
