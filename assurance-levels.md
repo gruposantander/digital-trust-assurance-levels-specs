@@ -41,7 +41,7 @@ organization="Santander"
 
 .# Abstract
 
-This specification defines a new claim that allows requesting assurance levels over existing claims.
+This specification defines a new member attribute that allows requesting assurance levels over existing claims, and another claim that allows sending the verification details for each of the claims verified and matching the requested level of assurance.
 
 {mainmatter}
 
@@ -51,9 +51,9 @@ Within current OpenID Connect specification [@!OIDC], when returning claims to t
 
 That is the concept around level of assurance, which has associated some degree of liability based on contractual conditions of the service and the relevant legislation the OP is attached too. For instance, banks currently perform KYC and AML checks as part of onboarding process. In that case, some of the claims provided by the bank, could be tight to a particular level of assurance and trust framework.
 
-We believe that in the majority of situations, the level of assurance will be enough, and it will not be necessary to disclose any other attribute or evidence document back to the RP.
+We believe that in the majority of situations, the level of assurance will be enough, and it will not be even necessary to disclose any other attribute or evidence document back to the RP.
 
-With this extension proposal, requested claims by the RP can refer to a desired level of assurance. If the OP can meet that LoA for the claim and the user consents, the data will be included in the response, otherwise the claim will not be returned.
+With this extension proposal, requested claims by the RP can refer to a desired level of assurance. If the OP can meet that level for the claim, and the user consents to share, the data will be included in the response, otherwise the claim will not be returned.
 
 ## Notational conventions
 
@@ -99,8 +99,9 @@ The request will return as a result the claims that matches the assurance levels
 Implementers MUST return an object for each claim inside `ials_claims` element with the following fields:
 
 * `level` REQUIRED. This is the level of assurance provided by the OP, it MUST be equal than the level requested.
-* `assurer_id` OPTIONAL. The id of the assurer. This id must be unique.
-* `assurer_name` OPTIONAL. The name of the assurer.
+* `assurer` OPTIONAL. The id and name of the assurer (the entity assuring the data level). This id must be unique.
+* `issuer` OPTIONAL. The id and name of the issuer (the entity issuing the data, in a format or document or any other valid digital representation). This id must be unique.
+
   
 The following is a non normative example of the response:
 
@@ -117,13 +118,25 @@ The following is a non normative example of the response:
     "claim_ials": {
         "given_name": {
             "level": "2",
-            "assurer-id": "SANUK",
-            "assurer-name": "Santander UK PLC"
+            "assurer": {
+              "id": "SANUK",
+              "name": "Santander UK PLC"
+            },
+            "issuer": {
+              "id": "UKGOV",
+              "name": "UK Government"
+            }
         },
         "address": {
             "level": "2",
-            "assurer-id": "UKGOV",
-            "assurer-name": "UK Government"
+            "assurer": {
+              "id": "SANUK",
+              "name": "Santander UK PLC"
+            },
+            "issuer": {
+              "id": "UKDVLA",
+              "name": "UK DVLA"
+            }
         }
     }
 }
@@ -235,4 +248,4 @@ To be done.
 
 Copyright (c) 2020 Grupo Santander
 
-We intent to release this especification under MIT license, pending internal process.
+We intent to release this specification under MIT license, pending internal process.
