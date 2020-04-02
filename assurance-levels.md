@@ -6,7 +6,7 @@ area = "Identity"
 workgroup = "connect"
 keyword = ["security", "openid", "authorization", "trust"]
 
-date = 2020-03-30T10:40:28Z
+date = 2020-04-03T11:00:00Z
 
 [seriesInfo]
 name = "Internet-Draft"
@@ -16,7 +16,7 @@ status = "standard"
 [[author]]
 initials="A."
 surname="Pulido"
-fullname="Alberto Pulido Moyano"
+fullname="Alberto Pulido Moyano, Ed."
 organization="Santander"
  [author.address]
  email = "alberto.pulido@santander.co.uk"
@@ -41,7 +41,7 @@ organization="Santander"
 
 .# Abstract
 
-This specification defines a new member attribute that allows requesting assurance levels over existing claims, and another claim that allows sending the verification details for each of the claims verified and matching the requested level of assurance.
+This specification defines a new member attribute that allows requesting a minimum assurance levels over existing claims. As a response to this request, OP SHOULD provide extended information about the assurer and the resolved level.
 
 {mainmatter}
 
@@ -49,9 +49,7 @@ This specification defines a new member attribute that allows requesting assuran
 
 Within current OpenID Connect specification [@!OIDC], when returning claims to the RP, with the exception of email and telephone, there is no a way to declare and differentiate those claims that have been validated by the OP following their current customer due diligence or onboarding processes.
 
-That is the concept around level of assurance, which has associated some degree of liability based on contractual conditions of the service and the relevant legislation the OP is attached too. For instance, banks currently perform KYC and AML checks as part of onboarding process. In that case, some of the claims provided by the bank, could be tight to a particular level of assurance and trust framework.
-
-We believe that in the majority of situations, the level of assurance will be enough, and it will not be even necessary to disclose any other attribute or evidence document back to the RP.
+That is the concept around level of assurance, which has associated some degree of liability based on contractual conditions of the service and the relevant legislation the OP is attached too. For instance, banks currently perform KYC and AML checks as part of onboarding process. In that case, some of the claims provided by the bank, could be tight to a particular level of assurance or trust framework.
 
 With this extension proposal, requested claims by the RP can refer to a desired level of assurance. If the OP can meet that level for the claim, and the user consents to share, the data will be included in the response, otherwise the claim will not be returned.
 
@@ -63,9 +61,14 @@ The key words "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "MAY", and "CAN" in 
 
 This specification uses the terms "Claim", "Claim Type", "Claims Provider","ID Token", "OpenID Provider (OP)", "Relying Party (RP)", and "UserInfo Endpoint" defined by OpenID Connect [@!OIDC]
 
+Other terms:
+
+* IAL: Identity Assurance Level
+* Assurer: Entity responsible for the verification of the level of assurance for a specific claim.
+
 # Request
 
-This specification defines a generic mechanism to request assurance level over claims using the new OPTIONAL element `ial`. This new element will be used inside any of the claims elements within `id_token` or `userinfo`, as specified in section 5.5 of [@!OIDC]. It will contain one of the values of level of assurances defined by the OP.
+This specification defines a generic mechanism to request assurance level over claims using the new OPTIONAL member `ial`. This new member will be used as part of the claims elements within `id_token` or `userinfo`, specified in section 5.5 of [@!OIDC]. It will contain one of the values of level of assurance defined by the OP.
 
 Any other member already supported by OpenID specifications remains valid, including members are defined for every claim:
 
@@ -82,27 +85,27 @@ Here is a non normative example:
 }
 ```
 
-Values for the `ial` member not supported by the OP SHOULD be ignored.
+IAL values are specified by OP as an ordered enumeration and represented as `string` values. Therefore, the comparison operations are defined and every verification level contain the previous one but the first level.
+
+Claim requests with invalid `ial` member SHOULD not be included in the response. Return the claim in this case could be misleading.
 
 Every claim MAY have a identity assurance level based on the level of OP verification of the actual data provided in the given claim. The IAL of the actual data at the OP MUST be equal or greater that the IAL in the request if the OP cannot provide the level of assurance the claim will not be returned.
 
-The values and meaning for the IALs supported by the OP MAY represent the legal framework the OP operates in, or at least the adherance to standard ways to attest the validity of the data eing returned. Here is an example for IAL values with similiraty to some standards such as NIST or eIDAS:
+The values and meaning for the IALs supported by the OP MAY represent the legal framework the OP operates in, or at least the adherence to standard ways to attest the validity of the data being returned. Here is an example for IAL values with similarity to some standards such as NIST or eIDAS:
 
-- "1": There is no requirement to link the applicant to a specific real-life identity. Any attributes provided in conjunction with the subject’s activities are self-asserted or should be treated as self-asserted. Self-asserted attributes are neither validated nor verified.
-- "2": Evidence supports the real-world existence of the claimed identity and verifies that the applicant is appropriately associated with this real-world identity. IAL2 introduces the need for either remote or physically-present identity proofing.
-- "3": Physical presence is required for identity proofing. Identifying attributes must be verified by an authorized and trained representatives.
+* "1": There is no requirement to link the applicant to a specific real-life identity. Any attributes provided in conjunction with the subject’s activities are self-asserted or should be treated as self-asserted. Self-asserted attributes are neither validated nor verified.
+* "2": Evidence supports the real-world existence of the claimed identity and verifies that the applicant is appropriately associated with this real-world identity. IAL2 introduces the need for either remote or physically-present identity proofing.
+* "3": Physical presence is required for identity proofing. Identifying attributes must be verified by an authorized and trained representatives.
 
 # Response
 
 The request will return as a result the claims that matches the assurance levels (IALs) requested by the RP.
 
-Implementers MUST return an object for each claim inside `ials_claims` element with the following fields:
+Implementers SHOULD return an object for each claim inside `ial_claims` element with the following fields:
 
 * `level` REQUIRED. This is the level of assurance provided by the OP, it MUST be equal than the level requested.
-* `assurer` OPTIONAL. The id and name of the assurer (the entity assuring the data level). This id must be unique.
-* `issuer` OPTIONAL. The id and name of the issuer (the trusted entity source of the data, in a format of a document or any other valid digital representation). This id must be unique.
+* `assurer` OPTIONAL. The `id` and `name` of the assurer (the entity assuring the data level). This id MUST be unique.
 
-  
 The following is a non normative example of the response:
 
 ```json
@@ -115,16 +118,12 @@ The following is a non normative example of the response:
         "postal_code": "90210",
         "country": "US"
     },
-    "claim_ials": {
+    "ial_claims": {
         "given_name": {
             "level": "2",
             "assurer": {
               "id": "SANUK",
               "name": "Santander UK PLC"
-            },
-            "issuer": {
-              "id": "UKGOV",
-              "name": "UK Government"
             }
         },
         "address": {
@@ -132,15 +131,46 @@ The following is a non normative example of the response:
             "assurer": {
               "id": "SANUK",
               "name": "Santander UK PLC"
-            },
-            "issuer": {
-              "id": "UKDVLA",
-              "name": "UK DVLA"
             }
         }
     }
 }
 ```
+
+# OP Metadata {#op-metadata}
+
+The OP SHOULD advertise their capabilities with respect to assertion claims in their `openid-configuration` (see [@!OIDC.Discovery]) using the following new elements:
+
+* `ial_claims_supported`: Boolean value indicating support of level of assurance claims.
+* `ials_definition_supported`: List of supported IALs by the OP
+
+Non normative example:
+
+```json
+{
+  "ial_claims_supported": true,
+  "ials_definition_supported": {
+    "1": {
+      "description" : "There is no requirement to link the applicant to a specific real-life identity. Any attributes provided in conjunction with the subject’s activities are self-asserted or should be treated as self-asserted. Self-asserted attributes are neither validated nor verified.",
+      "reference_trust_framework" : "NIST.800-63A"
+    },
+    "2": {
+      "description" : "Evidence supports the real-world existence of the claimed identity and verifies that the applicant is appropriately associated with this real-world identity. IAL2 introduces the need for either remote or physically-present identity proofing.",
+      "reference_trust_framework" : "NIST.800-63A"
+    },
+    "3": {
+      "description" : "Physical presence is required for identity proofing. Identifying attributes must be verified by an authorized and trained representatives.",
+      "reference_trust_framework" : "NIST.800-63A"
+    }
+  }
+}
+
+```
+
+# IANA Considerations
+
+To be done.
+
 
 {backmatter}
 
@@ -195,54 +225,6 @@ The following is a non normative example of the response:
    <date day="8" month="Nov" year="2014"/>
   </front>
 </reference>
-
-# OP Metadata {#op-metadata}
-
-The OP SHOULD advertise their capabilities with respect to assertion claims in their `openid-configuration` (see [@!OIDC.Discovery]) using the following new elements:
-
-* `ials_claims_supported`: Boolean value indicating support of level of assurance claims.
-* `ials_definition_supported`: List of supported IALs by the OP
-* `claims_in_ials_supported`: List of claims supported by any of the available IALs.
-
-Non normative example:
-
-```json
-{
-  "ials_claims_supported": true,
-  "ials_definition_supported": {
-    "1": {
-      "description" : "There is no requirement to link the applicant to a specific real-life identity. Any attributes provided in conjunction with the subject’s activities are self-asserted or should be treated as self-asserted. Self-asserted attributes are neither validated nor verified.",
-      "reference_trust_framework" : "NIST.800-63A",
-      "assurer-id" : "SANUK",
-      "assurer-name" : "Santander UK PLC"
-    },
-    "2": {
-      "description" : "Evidence supports the real-world existence of the claimed identity and verifies that the applicant is appropriately associated with this real-world identity. IAL2 introduces the need for either remote or physically-present identity proofing.",
-      "reference_trust_framework" : "NIST.800-63A",
-      "assurer-id" : "SANUK",
-      "assurer-name" : "Santander UK PLC"
-    },
-    "3": {
-      "description" : "Physical presence is required for identity proofing. Identifying attributes must be verified by an authorized and trained representatives.",
-      "reference_trust_framework" : "NIST.800-63A",
-      "assurer-id" : "UKGOV",
-      "assurer-name" : "UK Government"
-    }
-  },
-  "claims_in_ials_supported": {
-    "2": [
-      "address", "phone_number", "email"
-    ],
-    "3": [
-      "birthdate", "gender", "nationality"
-    ]
-}
-
-```
-
-# IANA Considerations
-
-To be done.
 
 # Notices
 
