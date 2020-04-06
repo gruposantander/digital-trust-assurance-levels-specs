@@ -41,17 +41,17 @@ organization="Santander"
 
 .# Abstract
 
-This specification defines a new member attribute that allows requesting a minimum assurance levels over existing claims. As a response to this request, OP SHOULD provide extended information about the assurer and the resolved level.
+This specification defines a new member attribute that allows the process of requesting a minimum assurance level in relation to an existing claim. In the response to this request, the OP SHOULD provide extended information about the assurer and the resolved level.
 
 {mainmatter}
 
 # Introduction {#Introduction}
 
-Within current OpenID Connect specification [@!OIDC], when returning claims to the RP, with the exception of email and telephone, there is no a way to declare and differentiate those claims that have been validated by the OP following their current customer due diligence or onboarding processes.
+Within the current OpenID Connect specification [@!OIDC], when returning claims to the RP - with the exception of email and telephone - there is no a way to declare and differentiate the claims that have been validated by the OP as part of their current customer due diligence or onboarding processes.
 
-That is the concept around level of assurance, which has associated some degree of liability based on contractual conditions of the service and the relevant legislation the OP is attached too. For instance, banks currently perform KYC and AML checks as part of onboarding process. In that case, some of the claims provided by the bank, could be tight to a particular level of assurance or trust framework.
+The concept around level of assurance, which has an associated degree of liability based on contractual conditions of the service and the relevant legislation for the OP, is attached too. For instance, banks currently perform KYC and AML checks as part of the onboarding process. In this case, some of the claims provided by the bank could be tied to a particular level of assurance or trust framework.
 
-With this extension proposal, requested claims by the RP can refer to a desired level of assurance. If the OP can meet that level for the claim, and the user consents to share, the data will be included in the response, otherwise the claim will not be returned.
+With this extension proposal, requested claims by the RP can refer to a desired level of assurance. If the OP can meet that level for the claim, and the user consents to share the relevant information, the data will be included in the response. If this level of assurance cannot be met, the claim will not be returned.
 
 ## Notational conventions
 
@@ -68,9 +68,9 @@ Other terms:
 
 # Request
 
-This specification defines a generic mechanism to request assurance level over claims using the new OPTIONAL member `ial`. This new member will be used as part of the claims elements within `id_token` or `userinfo`, specified in section 5.5 of [@!OIDC]. It will contain one of the values of level of assurance defined by the OP.
+This specification defines a generic mechanism to request an assurance level over claims using the new OPTIONAL member `ial`. This new member will be used as part of the claims elements within `id_token` or `userinfo`, as specified in section 5.5 of [@!OIDC]. It will contain one of the values of the level of assurance as defined by the OP.
 
-Any other member already supported by OpenID specifications remains valid, including members are defined for every claim:
+Any other member already supported by OpenID specifications remains valid, including members that are defined for every claim.
 
 Here is a non normative example:
 
@@ -85,25 +85,25 @@ Here is a non normative example:
 }
 ```
 
-IAL values are specified by OP as an ordered enumeration and represented as `string` values. Therefore, the comparison operations are defined and every verification level contain the previous one but the first level.
+IAL values are specified by the OP as an ordered enumeration and represented as `string` values. Therefore, the comparator operations are defined and every verification level contains the previous one excluding the first level.
 
-Claim requests with invalid `ial` member SHOULD not be included in the response. Return the claim in this case could be misleading.
+Claim requests with an invalid `ial` member SHOULD not be included in the response. Returning the claim in this case could be misleading.
 
-Every claim MAY have a identity assurance level based on the level of OP verification of the actual data provided in the given claim. The IAL of the actual data at the OP MUST be equal or greater that the IAL in the request if the OP cannot provide the level of assurance the claim will not be returned.
+Every claim MAY have a identity assurance level based on the level of OP verification of the actual data provided in the given claim. The IAL of the actual data at the OP MUST be equal to or greater than the IAL in the request. If the OP cannot provide the level of assurance that has been requested, the claim will not be returned.
 
-The values and meaning for the IALs supported by the OP MAY represent the legal framework the OP operates in, or at least the adherence to standard ways to attest the validity of the data being returned. Here is an example for IAL values with similarity to some standards such as NIST or eIDAS:
+The values and meaning for the IALs supported by the OP MAY represent the legal framework the OP operates in, or at least the adherence to standard ways to attest the validity of the data being returned. Here is an example for the IAL values with similarity to some standards such as NIST or eIDAS:
 
 * "1": There is no requirement to link the applicant to a specific real-life identity. Any attributes provided in conjunction with the subject’s activities are self-asserted or should be treated as self-asserted. Self-asserted attributes are neither validated nor verified.
 * "2": Evidence supports the real-world existence of the claimed identity and verifies that the applicant is appropriately associated with this real-world identity. IAL2 introduces the need for either remote or physically-present identity proofing.
-* "3": Physical presence is required for identity proofing. Identifying attributes must be verified by an authorized and trained representatives.
+* "3": Physical presence is required for identity proofing. Identifying attributes must be verified by authorized and trained representatives.
 
 # Response
 
-The request will return as a result the claims that matches the assurance levels (IALs) requested by the RP.
+The request will return the resulting claims that match the assurance levels (IALs) requested by the RP.
 
-Implementers SHOULD return an object for each claim inside `ial_claims` element with the following fields:
+Implementers SHOULD return an object for each claim inside the `ial_claims` element with the following fields:
 
-* `level` REQUIRED. This is the level of assurance provided by the OP, it MUST be equal than the level requested.
+* `level` REQUIRED. This is the level of assurance provided by the OP - it MUST be equal to the level requested.
 * `assurer` OPTIONAL. The `id` and `name` of the assurer (the entity assuring the data level). This id MUST be unique.
 
 The following is a non normative example of the response:
@@ -139,9 +139,9 @@ The following is a non normative example of the response:
 
 # OP Metadata {#op-metadata}
 
-The OP SHOULD advertise their capabilities with respect to assertion claims in their `openid-configuration` (see [@!OIDC.Discovery]) using the following new elements:
+The OP SHOULD advertise their capabilities with respect to the assertion claims in their `openid-configuration` (see [@!OIDC.Discovery]) using the following new elements:
 
-* `ial_claims_supported`: Boolean value indicating support of level of assurance claims.
+* `ial_claims_supported`: Boolean value indicating the support of any level of assurance claims.
 * `ials_definition_supported`: List of supported IALs by the OP
 
 Non normative example:
@@ -230,4 +230,4 @@ To be done.
 
 Copyright (c) 2020 Grupo Santander
 
-We intent to release this specification under MIT license, pending internal process.
+We intend to release this specification under the MIT license, pending internal process.
